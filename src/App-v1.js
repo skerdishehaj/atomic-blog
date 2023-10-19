@@ -1,5 +1,6 @@
-import { createContext, useEffect, useState, useContext } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import { faker } from '@faker-js/faker';
+import { PostProvider, usePosts } from './PostContext';
 
 // This function generates a random post object with a title and a body
 function createRandomPost() {
@@ -19,35 +20,10 @@ const Button = ({ children, onClick, className }) => (
   </button>
 );
 
-// 1) Create the Post Context
-const PostContext = createContext();
-
 function App() {
-  const [posts, setPosts] = useState(() =>
-    Array.from({ length: 30 }, () => createRandomPost()),
-  );
-  const [searchQuery, setSearchQuery] = useState('');
+  // Whenever `isFakeDark` changes, we toggle the `fake-dark-mode` class on the HTML element (see in "Elements" dev tool).
   const [isFakeDark, setIsFakeDark] = useState(false);
 
-  // Derived state. These are the posts that will actually be displayed
-  const searchedPosts =
-    searchQuery.length > 0
-      ? posts.filter((post) =>
-          `${post.title} ${post.body}`
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase()),
-        )
-      : posts;
-
-  function handleAddPost(post) {
-    setPosts((posts) => [post, ...posts]);
-  }
-
-  function handleClearPosts() {
-    setPosts([]);
-  }
-
-  // Whenever `isFakeDark` changes, we toggle the `fake-dark-mode` class on the HTML element (see in "Elements" dev tool).
   useEffect(
     function () {
       document.documentElement.classList.toggle('fake-dark-mode');
@@ -56,36 +32,26 @@ function App() {
   );
 
   return (
-    // 2) Wrap the whole app in the Post Context Provider to provide values to all the child components
-    <PostContext.Provider
-      value={{
-        posts: searchedPosts,
-        onAddPost: handleAddPost,
-        onClearPosts: handleClearPosts,
-        searchQuery,
-        setSearchQuery,
-      }}
-    >
-      <Section>
-        <Button
-          onClick={() => setIsFakeDark((isFakeDark) => !isFakeDark)}
-          className='btn-fake-dark-mode'
-        >
-          {isFakeDark ? '☀️' : '🌙'}
-        </Button>
+    <Section>
+      <Button
+        onClick={() => setIsFakeDark((isFakeDark) => !isFakeDark)}
+        className='btn-fake-dark-mode'
+      >
+        {isFakeDark ? '☀️' : '🌙'}
+      </Button>
+      <PostProvider>
         <Header />
         <Main />
         <Archive />
         <Footer />
-      </Section>
-    </PostContext.Provider>
+      </PostProvider>
+    </Section>
   );
 }
 
 // This component will display the header of the page which contains the title, the search bar and the button to clear the posts
 function Header() {
-  // 3) Consume the Post Context to get the values we need
-  const { onClearPosts } = useContext(PostContext);
+  const { onClearPosts } = usePosts();
   return (
     <header>
       <h1>
@@ -102,7 +68,7 @@ function Header() {
 
 //This component returns the search bar
 function SearchPosts() {
-  const { searchQuery, setSearchQuery } = useContext(PostContext);
+  const { searchQuery, setSearchQuery } = usePosts;
   return (
     <input
       value={searchQuery}
@@ -112,9 +78,9 @@ function SearchPosts() {
   );
 }
 
-// Tgis component returns the number of posts found
+// This component returns the number of posts found
 function Results() {
-  const { posts } = useContext(PostContext);
+  const { posts } = usePosts;
   return <p>🚀 {posts.length} atomic posts found</p>;
 }
 
@@ -137,7 +103,7 @@ function Posts() {
 }
 // This component returns the form to add new post
 function FormAddPost() {
-  const { onAddPost } = useContext(PostContext);
+  const { onAddPost } = usePosts;
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
 
@@ -168,7 +134,7 @@ function FormAddPost() {
 
 // This component returns the list of posts that will be displayed
 function List() {
-  const { posts } = useContext(PostContext);
+  const { posts } = usePosts;
   return (
     <ul>
       {posts.map((post, i) => (
@@ -183,7 +149,7 @@ function List() {
 
 // This component returns the archive of posts and then by clicking on the button, you can add them to the list of posts
 function Archive() {
-  const { onAddPost } = useContext(PostContext);
+  const { onAddPost } = usePosts;
   // Here we don't need the setter function. We're only using state to store these posts because the callback function passed into useState (which generates the posts) is only called once, on the initial render. So we use this trick as an optimization technique, because if we just used a regular variable, these posts would be re-created on every render. We could also move the posts outside the components, but I wanted to show you this trick 😉
   const [posts] = useState(() =>
     // 💥 WARNING: This might make your computer slow! Try a smaller `length` first
