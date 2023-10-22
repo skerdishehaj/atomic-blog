@@ -1,4 +1,4 @@
-import { createContext, useState } from 'react';
+import { createContext, useContext, useState } from 'react';
 import { faker } from '@faker-js/faker';
 
 // This function generates a random post object with a title and a body
@@ -59,4 +59,4 @@ const usePosts = () => {
   return context;
 };
 
-export default { PostProvider, usePosts };
+export { PostProvider, usePosts };

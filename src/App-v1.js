@@ -1,4 +1,4 @@
-import { useEffect, useState, useContext } from 'react';
+import { useEffect, useState } from 'react';
 import { faker } from '@faker-js/faker';
 import { PostProvider, usePosts } from './PostContext';
 
@@ -68,7 +68,7 @@ function Header() {
 
 //This component returns the search bar
 function SearchPosts() {
-  const { searchQuery, setSearchQuery } = usePosts;
+  const { searchQuery, setSearchQuery } = usePosts();
   return (
     <input
       value={searchQuery}
@@ -80,8 +80,8 @@ function SearchPosts() {
 
 // This component returns the number of posts found
 function Results() {
-  const { posts } = usePosts;
-  return <p>🚀 {posts.length} atomic posts found</p>;
+  const { posts } = usePosts();
+  return <p>🚀 {posts?.length} atomic posts found</p>;
 }
 
 // This component is the main page that holds the form to add new post and also the list of current posts
@@ -103,7 +103,7 @@ function Posts() {
 }
 // This component returns the form to add new post
 function FormAddPost() {
-  const { onAddPost } = usePosts;
+  const { onAddPost } = usePosts();
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
 
@@ -134,10 +134,10 @@ function FormAddPost() {
 
 // This component returns the list of posts that will be displayed
 function List() {
-  const { posts } = usePosts;
+  const { posts } = usePosts();
   return (
     <ul>
-      {posts.map((post, i) => (
+      {posts?.map((post, i) => (
         <li key={i}>
           <h3>{post.title}</h3>
           <p>{post.body}</p>
@@ -149,7 +149,7 @@ function List() {
 
 // This component returns the archive of posts and then by clicking on the button, you can add them to the list of posts
 function Archive() {
-  const { onAddPost } = usePosts;
+  const { onAddPost } = usePosts();
   // Here we don't need the setter function. We're only using state to store these posts because the callback function passed into useState (which generates the posts) is only called once, on the initial render. So we use this trick as an optimization technique, because if we just used a regular variable, these posts would be re-created on every render. We could also move the posts outside the components, but I wanted to show you this trick 😉
   const [posts] = useState(() =>
     // 💥 WARNING: This might make your computer slow! Try a smaller `length` first
